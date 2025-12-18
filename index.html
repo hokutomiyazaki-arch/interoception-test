@@ -47,7 +47,8 @@
             color: #ffffff;
             display: flex;
             flex-direction: column;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            padding: 0;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         /* スプラッシュスクリーン */
@@ -110,6 +111,8 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
 
         /* ヘッダー */
@@ -118,8 +121,11 @@
             align-items: center;
             justify-content: space-between;
             padding: 15px 20px;
+            padding-top: max(15px, calc(env(safe-area-inset-top) + 10px));
             background: rgba(0, 0, 0, 0.3);
             flex-shrink: 0;
+            position: relative;
+            z-index: 10;
         }
 
         .header-left {
@@ -160,6 +166,25 @@
             justify-content: center;
             padding: 20px;
             overflow: hidden;
+        }
+
+        /* スタート画面 */
+        #startScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #startScreen .instruction-text {
+            margin-bottom: 30px;
+        }
+
+        #startScreen .btn {
+            font-size: 1.4rem;
+            padding: 20px 50px;
         }
 
         /* カメラビュー */
@@ -635,6 +660,20 @@
             }
         }
 
+        /* PWAスタンドアロンモード */
+        @media all and (display-mode: standalone) {
+            .header {
+                padding-top: max(20px, calc(env(safe-area-inset-top) + 15px));
+            }
+        }
+
+        /* iOSセーフエリア対応 */
+        @supports (padding-top: env(safe-area-inset-top)) {
+            .header {
+                padding-top: max(15px, calc(env(safe-area-inset-top) + 10px));
+            }
+        }
+
         /* 隠しキャンバス */
         #hiddenCanvas {
             display: none;
@@ -664,7 +703,7 @@
         <!-- メインエリア -->
         <main class="game-area" id="gameArea">
             <!-- 初期画面 -->
-            <div id="startScreen">
+            <div id="startScreen" style="display: flex;">
                 <div class="instruction-text">
                     スマートフォンのカメラで心拍を測定し、<br>
                     あなたの内受容感覚（心拍知覚力）を評価します。
@@ -1007,28 +1046,69 @@
             try {
                 elements.statusText.textContent = 'カメラを起動しています...';
 
-                // カメラの設定（背面カメラ優先、フラッシュ対応）
+                // 利用可能なカメラを取得
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                
+                // 背面カメラの中から標準（広角）レンズを選択
+                // 望遠レンズを避けるため、最初の背面カメラを使用
+                let selectedDeviceId = null;
+                
+                for (const device of videoDevices) {
+                    const label = device.label.toLowerCase();
+                    // 望遠、telephoto、zoom、2xなどを避ける
+                    if (!label.includes('front') && 
+                        !label.includes('telephoto') && 
+                        !label.includes('tele') &&
+                        !label.includes('zoom') &&
+                        !label.includes('2x') &&
+                        !label.includes('3x') &&
+                        !label.includes('5x')) {
+                        // 広角またはメイン/標準カメラを優先
+                        if (label.includes('wide') || label.includes('main') || 
+                            label.includes('back') || label.includes('rear') ||
+                            label.includes('0') || !selectedDeviceId) {
+                            selectedDeviceId = device.deviceId;
+                            console.log('Selected camera:', device.label);
+                        }
+                    }
+                }
+
+                // カメラの設定
                 const constraints = {
                     video: {
-                        facingMode: 'environment',
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
+                        width: { ideal: 640, max: 1280 },
+                        height: { ideal: 480, max: 720 },
+                        frameRate: { ideal: 30 }
                     }
                 };
+
+                // デバイスIDが取得できた場合は指定
+                if (selectedDeviceId) {
+                    constraints.video.deviceId = { exact: selectedDeviceId };
+                } else {
+                    // フォールバック：環境カメラを指定（ただしexactではない）
+                    constraints.video.facingMode = 'environment';
+                }
 
                 videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                 elements.cameraVideo.srcObject = videoStream;
                 
                 await elements.cameraVideo.play();
 
-                // フラッシュをオンにする試行
+                // フラッシュをオンにする試行（PPG測定精度向上のため）
                 const track = videoStream.getVideoTracks()[0];
                 const capabilities = track.getCapabilities();
                 
                 if (capabilities.torch) {
-                    await track.applyConstraints({
-                        advanced: [{ torch: true }]
-                    });
+                    try {
+                        await track.applyConstraints({
+                            advanced: [{ torch: true }]
+                        });
+                        console.log('Torch enabled');
+                    } catch (e) {
+                        console.log('Could not enable torch:', e);
+                    }
                 }
 
                 elements.statusText.textContent = '指先をカメラに軽く押し当ててください';
@@ -1453,7 +1533,7 @@
 
             switch (screenName) {
                 case 'start':
-                    elements.startScreen.style.display = 'block';
+                    elements.startScreen.style.display = 'flex';
                     break;
                 case 'measurement':
                     elements.measurementScreen.style.display = 'flex';
