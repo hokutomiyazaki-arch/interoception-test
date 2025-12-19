@@ -978,7 +978,7 @@
             elements.menuOverlay.classList.remove('show');
         }
 
-        // カメラ初期化
+        // カメラ初期化（シンプル版）
         async function initCamera() {
             showStep('step1');
             elements.cameraLabel.textContent = 'カメラを起動中...';
@@ -991,55 +991,28 @@
                     videoStream.getTracks().forEach(track => track.stop());
                 }
 
-                // デバイス一覧を取得
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(d => d.kind === 'videoinput');
-                
-                let selectedDeviceId = null;
-                
-                // 標準カメラを選択（望遠を避ける）
-                for (const device of videoDevices) {
-                    const label = device.label.toLowerCase();
-                    if (!label.includes('front') && 
-                        !label.includes('telephoto') && 
-                        !label.includes('tele') &&
-                        !label.includes('zoom') &&
-                        !label.includes('2x') &&
-                        !label.includes('3x')) {
-                        if (label.includes('wide') || label.includes('main') || 
-                            label.includes('back') || !selectedDeviceId) {
-                            selectedDeviceId = device.deviceId;
-                        }
-                    }
-                }
-
+                // シンプルな設定（背面カメラ優先）
                 const constraints = {
                     video: {
+                        facingMode: 'environment',
                         width: { ideal: 640 },
-                        height: { ideal: 480 },
-                        frameRate: { ideal: 30 }
+                        height: { ideal: 480 }
                     }
                 };
-
-                if (selectedDeviceId) {
-                    constraints.video.deviceId = { exact: selectedDeviceId };
-                } else {
-                    constraints.video.facingMode = 'environment';
-                }
 
                 videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                 elements.cameraVideo.srcObject = videoStream;
                 await elements.cameraVideo.play();
 
-                // フラッシュをオン
-                const track = videoStream.getVideoTracks()[0];
-                const capabilities = track.getCapabilities();
-                if (capabilities && capabilities.torch) {
-                    try {
+                // フラッシュをオン（対応デバイスのみ）
+                try {
+                    const track = videoStream.getVideoTracks()[0];
+                    const capabilities = track.getCapabilities();
+                    if (capabilities && capabilities.torch) {
                         await track.applyConstraints({ advanced: [{ torch: true }] });
-                    } catch (e) {
-                        console.log('Torch not available');
                     }
+                } catch (e) {
+                    console.log('Torch not available');
                 }
 
                 elements.cameraLabel.textContent = '指先をカメラに押し当ててください';
