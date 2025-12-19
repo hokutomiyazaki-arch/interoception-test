@@ -7,22 +7,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- PWA設定 -->
     <meta name="application-name" content="内受容覚テスト">
     <meta name="apple-mobile-web-app-title" content="内受容覚テスト">
     <link rel="manifest" href="manifest.json">
     
-    <!-- アイコン設定 -->
     <link rel="icon" href="https://hokutomiyazaki-arch.github.io/interoception-test/FNT512.png">
     <link rel="apple-touch-icon" href="https://hokutomiyazaki-arch.github.io/interoception-test/FNT512.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://hokutomiyazaki-arch.github.io/interoception-test/FNT512.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="https://hokutomiyazaki-arch.github.io/interoception-test/FNT512.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="https://hokutomiyazaki-arch.github.io/interoception-test/FNT512.png">
     
-    <!-- テーマカラー -->
     <meta name="theme-color" content="#e74c3c">
     
-    <title>内受容覚テスト - Interoceptive Awareness</title>
+    <title>内受容覚テスト</title>
     <style>
         * {
             margin: 0;
@@ -47,8 +41,6 @@
             color: #ffffff;
             display: flex;
             flex-direction: column;
-            padding: 0;
-            padding-bottom: env(safe-area-inset-bottom);
         }
 
         /* スプラッシュスクリーン */
@@ -73,34 +65,30 @@
         }
 
         .splash-logo {
-            width: 150px;
-            height: 150px;
-            margin-bottom: 30px;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
         }
 
         .splash-brand {
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: #333;
-            margin-bottom: 10px;
-            font-weight: 500;
-            text-align: center;
+            margin-bottom: 8px;
         }
 
         .splash-title {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             font-weight: bold;
-            text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .splash-copyright {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: #888;
-            margin-top: 20px;
         }
 
         /* メインコンテナ */
@@ -111,8 +99,6 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
         }
 
         /* ヘッダー */
@@ -120,27 +106,25 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 15px 20px;
-            padding-top: max(15px, calc(env(safe-area-inset-top) + 10px));
-            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 15px;
+            padding-top: calc(10px + env(safe-area-inset-top));
+            background: rgba(0, 0, 0, 0.4);
             flex-shrink: 0;
-            position: relative;
-            z-index: 10;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
         .logo {
-            height: 40px;
+            height: 32px;
             width: auto;
         }
 
         .header h1 {
-            font-size: 1.2rem;
+            font-size: 1rem;
             background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -151,52 +135,112 @@
             background: rgba(255, 255, 255, 0.1);
             border: none;
             color: white;
-            font-size: 1.5rem;
-            padding: 10px 15px;
-            border-radius: 10px;
+            font-size: 1.2rem;
+            padding: 8px 12px;
+            border-radius: 8px;
             cursor: pointer;
         }
 
         /* メインエリア */
-        .game-area {
+        .main-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow: hidden;
+            justify-content: flex-start;
+            padding: 15px;
+            padding-top: 10px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* スタート画面 */
-        #startScreen {
+        /* ステップコンテンツ */
+        .step-content {
+            width: 100%;
+            max-width: 400px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+        }
+
+        /* ステップインジケーター */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .step-dot.active {
+            background: #e74c3c;
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
+        }
+
+        .step-dot.completed {
+            background: #2ecc71;
+        }
+
+        .step-line {
+            width: 15px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 指示ボックス */
+        .instruction-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 15px;
             text-align: center;
-            padding: 20px;
+            width: 100%;
         }
 
-        #startScreen .instruction-text {
-            margin-bottom: 30px;
+        .instruction-step {
+            font-size: 0.75rem;
+            color: #f39c12;
+            margin-bottom: 6px;
         }
 
-        #startScreen .btn {
-            font-size: 1.4rem;
-            padding: 20px 50px;
+        .instruction-text {
+            font-size: 1rem;
+            color: #fff;
+            line-height: 1.5;
         }
 
-        /* カメラビュー */
+        /* カメラセクション */
+        .camera-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
         .camera-container {
             position: relative;
-            width: 200px;
-            height: 200px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
             overflow: hidden;
-            border: 4px solid #e74c3c;
-            box-shadow: 0 0 30px rgba(231, 76, 60, 0.5);
-            margin-bottom: 20px;
+            border: 4px solid #444;
+            background: #000;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .camera-container.detecting {
+            border-color: #2ecc71;
+            box-shadow: 0 0 25px rgba(46, 204, 113, 0.5);
+        }
+
+        .camera-container.error {
+            border-color: #e74c3c;
         }
 
         .camera-container video {
@@ -205,217 +249,222 @@
             object-fit: cover;
         }
 
-        .camera-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.7);
-            font-size: 0.9rem;
-            text-align: center;
-            padding: 20px;
+        .camera-label {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #aaa;
         }
 
-        .camera-overlay.hidden {
-            display: none;
-        }
-
-        /* 心拍表示 */
-        .heartbeat-display {
-            font-size: 4rem;
-            font-weight: bold;
-            color: #e74c3c;
-            text-shadow: 0 0 30px rgba(231, 76, 60, 0.8);
-            margin-bottom: 10px;
+        /* 心拍インジケーター */
+        .heartbeat-indicator {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
         .heart-icon {
-            font-size: 3rem;
-            animation: none;
+            font-size: 2rem;
+            transition: transform 0.1s;
         }
 
-        .heart-icon.beating {
-            animation: heartbeat 1s ease-in-out infinite;
+        .heart-icon.beat {
+            transform: scale(1.3);
         }
 
-        @keyframes heartbeat {
-            0%, 100% { transform: scale(1); }
-            15% { transform: scale(1.3); }
-            30% { transform: scale(1); }
+        .bpm-display {
+            text-align: center;
+        }
+
+        .bpm-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #e74c3c;
         }
 
         .bpm-label {
-            font-size: 1.2rem;
-            color: #aaa;
-            margin-bottom: 30px;
+            font-size: 0.7rem;
+            color: #888;
         }
 
-        /* タイマー表示 */
-        .timer-display {
-            font-size: 5rem;
+        /* タイマー */
+        .timer-section {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .timer-value {
+            font-size: 4.5rem;
             font-weight: bold;
             color: #3498db;
-            text-shadow: 0 0 30px rgba(52, 152, 219, 0.5);
-            margin-bottom: 10px;
+            text-shadow: 0 0 25px rgba(52, 152, 219, 0.5);
+            line-height: 1;
         }
 
         .timer-label {
-            font-size: 1rem;
-            color: #aaa;
-            margin-bottom: 30px;
-        }
-
-        /* ステータス */
-        .status-text {
-            font-size: 1.2rem;
-            color: #f39c12;
-            text-align: center;
-            margin-bottom: 20px;
-            min-height: 30px;
-        }
-
-        /* 入力エリア */
-        .input-area {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            width: 100%;
-            max-width: 300px;
-        }
-
-        .input-area.show {
-            display: flex;
-        }
-
-        .input-area label {
-            font-size: 1.1rem;
-            color: #aaa;
-        }
-
-        .input-area input {
-            width: 100%;
-            padding: 15px;
-            font-size: 2rem;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid #3498db;
-            border-radius: 15px;
-            color: white;
-            outline: none;
-        }
-
-        .input-area input:focus {
-            border-color: #e74c3c;
-            box-shadow: 0 0 20px rgba(231, 76, 60, 0.3);
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
         }
 
         /* ボタン */
         .btn {
-            padding: 15px 40px;
-            font-size: 1.2rem;
+            padding: 14px 35px;
+            font-size: 1rem;
             border: none;
-            border-radius: 30px;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, opacity 0.2s;
+            margin-top: 10px;
         }
 
         .btn:active {
             transform: scale(0.95);
         }
 
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             color: white;
-            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
         }
 
         .btn-secondary {
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
-            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
         }
 
         .btn-success {
             background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
             color: white;
-            box-shadow: 0 5px 20px rgba(46, 204, 113, 0.4);
         }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
         }
 
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        /* 結果表示 */
-        .results-container {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
+        /* 入力セクション */
+        .input-section {
             width: 100%;
-            max-width: 400px;
+            max-width: 280px;
+            margin-bottom: 15px;
         }
 
-        .results-container.show {
-            display: flex;
+        .input-label {
+            display: block;
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.8rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #3498db;
+            border-radius: 12px;
+            color: white;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: #e74c3c;
+        }
+
+        /* 結果セクション */
+        .result-section {
+            width: 100%;
+            max-width: 350px;
         }
 
         .result-card {
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            width: 100%;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
             text-align: center;
         }
 
         .result-card h3 {
-            color: #e74c3c;
-            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #f39c12;
+            margin-bottom: 8px;
         }
 
-        .result-score {
-            font-size: 3rem;
+        .result-rank {
+            font-size: 3.5rem;
             font-weight: bold;
-            color: #2ecc71;
+            margin-bottom: 5px;
         }
 
-        .result-interpretation {
-            font-size: 1rem;
-            color: #aaa;
-            margin-top: 10px;
+        .rank-S { color: #f1c40f; }
+        .rank-A { color: #2ecc71; }
+        .rank-B { color: #3498db; }
+        .rank-C { color: #9b59b6; }
+        .rank-D { color: #e74c3c; }
+
+        .result-description {
+            font-size: 0.95rem;
+            color: #ccc;
         }
 
-        .trial-results {
-            width: 100%;
-        }
-
-        .trial-row {
+        .result-detail {
             display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            justify-content: space-around;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .trial-row:last-child {
-            border-bottom: none;
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .detail-label {
+            font-size: 0.65rem;
+            color: #888;
+        }
+
+        .error-value {
+            color: #e74c3c;
+        }
+
+        /* カメラエラー */
+        .camera-error {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .error-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+
+        .error-title {
+            font-size: 1.1rem;
+            color: #e74c3c;
+            margin-bottom: 8px;
+        }
+
+        .error-message {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 15px;
+            line-height: 1.5;
         }
 
         /* サイドメニュー */
@@ -423,8 +472,8 @@
             position: fixed;
             top: 0;
             right: -320px;
-            width: 300px;
-            max-width: 80vw;
+            width: 290px;
+            max-width: 85vw;
             height: 100%;
             background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
             z-index: 1000;
@@ -442,12 +491,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
+            padding: 12px 15px;
+            padding-top: calc(12px + env(safe-area-inset-top));
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .side-menu-header h2 {
-            font-size: 1.3rem;
+            font-size: 1rem;
             color: #e74c3c;
         }
 
@@ -455,7 +505,7 @@
             background: none;
             border: none;
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             cursor: pointer;
             padding: 5px 10px;
         }
@@ -463,7 +513,7 @@
         .side-menu-content {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 12px;
             -webkit-overflow-scrolling: touch;
             touch-action: auto !important;
         }
@@ -473,43 +523,42 @@
         }
 
         .menu-section {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         .menu-section h3 {
             color: #f39c12;
-            font-size: 1rem;
-            margin-bottom: 15px;
-            padding-bottom: 5px;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .menu-section p {
             color: #ccc;
-            font-size: 0.9rem;
-            line-height: 1.6;
+            font-size: 0.8rem;
+            line-height: 1.5;
         }
 
-        .setting-group {
-            margin-bottom: 15px;
+        .setting-item {
+            margin-bottom: 10px;
         }
 
-        .setting-group label {
+        .setting-item label {
             display: block;
             color: #aaa;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
         }
 
-        .setting-group select,
-        .setting-group input[type="number"] {
+        .setting-item select {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            border-radius: 6px;
             color: white;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .menu-overlay {
@@ -533,150 +582,45 @@
         /* フッター */
         .footer {
             text-align: center;
-            padding: 10px;
-            font-size: 0.75rem;
-            color: #666;
+            padding: 6px;
+            padding-bottom: calc(6px + env(safe-area-inset-bottom));
+            font-size: 0.65rem;
+            color: #555;
             background: rgba(0, 0, 0, 0.3);
             flex-shrink: 0;
         }
 
-        /* PPG波形表示 */
-        .ppg-canvas-container {
-            width: 100%;
-            max-width: 350px;
-            height: 80px;
-            margin-bottom: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            overflow: hidden;
+        /* 非表示 */
+        .hidden {
+            display: none !important;
         }
 
-        #ppgCanvas {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* 進捗インジケーター */
-        .progress-dots {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .progress-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .progress-dot.completed {
-            background: #2ecc71;
-        }
-
-        .progress-dot.active {
-            background: #e74c3c;
-            animation: pulse 1s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.7; }
-        }
-
-        /* カウントダウン */
-        .countdown-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 500;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .countdown-overlay.show {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .countdown-number {
-            font-size: 10rem;
-            font-weight: bold;
-            color: #e74c3c;
-            text-shadow: 0 0 50px rgba(231, 76, 60, 0.8);
-        }
-
-        .countdown-text {
-            font-size: 1.5rem;
-            color: #aaa;
-            margin-top: 20px;
-        }
-
-        /* フェーズ表示 */
-        .phase-indicator {
-            font-size: 1rem;
-            color: #f39c12;
-            margin-bottom: 10px;
-        }
-
-        /* 指示テキスト */
-        .instruction-text {
-            font-size: 1.1rem;
-            color: #3498db;
-            text-align: center;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        /* レスポンシブ */
-        @media (max-height: 600px) {
-            .camera-container {
-                width: 120px;
-                height: 120px;
-            }
-            .heartbeat-display {
-                font-size: 2.5rem;
-            }
-            .timer-display {
-                font-size: 3rem;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .header h1 {
-                font-size: 1rem;
-            }
-            .btn {
-                padding: 12px 25px;
-                font-size: 1rem;
-            }
-        }
-
-        /* PWAスタンドアロンモード */
-        @media all and (display-mode: standalone) {
-            .header {
-                padding-top: max(20px, calc(env(safe-area-inset-top) + 15px));
-            }
-        }
-
-        /* iOSセーフエリア対応 */
-        @supports (padding-top: env(safe-area-inset-top)) {
-            .header {
-                padding-top: max(15px, calc(env(safe-area-inset-top) + 10px));
-            }
-        }
-
-        /* 隠しキャンバス */
         #hiddenCanvas {
             display: none;
+        }
+
+        /* スクロールバー非表示 */
+        .main-area::-webkit-scrollbar {
+            display: none;
+        }
+
+        .main-area {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 小さい画面用調整 */
+        @media (max-height: 650px) {
+            .camera-container {
+                width: 110px;
+                height: 110px;
+            }
+            .timer-value {
+                font-size: 3.5rem;
+            }
+            .result-rank {
+                font-size: 2.5rem;
+            }
         }
     </style>
 </head>
@@ -701,86 +645,162 @@
         </header>
 
         <!-- メインエリア -->
-        <main class="game-area" id="gameArea">
-            <!-- 初期画面 -->
-            <div id="startScreen" style="display: flex;">
-                <div class="instruction-text">
-                    スマートフォンのカメラで心拍を測定し、<br>
-                    あなたの内受容感覚（心拍知覚力）を評価します。
+        <main class="main-area" id="mainArea">
+            <!-- ステップ1: カメラ準備 -->
+            <div id="step1" class="step-content">
+                <div class="step-indicator">
+                    <div class="step-dot active"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot"></div>
                 </div>
-                <button class="btn btn-primary" id="startBtn">テストを開始</button>
-            </div>
 
-            <!-- 測定画面 -->
-            <div id="measurementScreen" style="display: none; flex-direction: column; align-items: center;">
-                <div class="progress-dots" id="progressDots"></div>
-                <div class="phase-indicator" id="phaseIndicator">試行 1 / 3</div>
-                
-                <div class="camera-container" id="cameraContainer">
-                    <video id="cameraVideo" autoplay playsinline muted></video>
-                    <div class="camera-overlay" id="cameraOverlay">
-                        指先をカメラに<br>軽く押し当ててください
+                <div class="instruction-box">
+                    <div class="instruction-step">ステップ 1/4</div>
+                    <div class="instruction-text">
+                        カメラに指先を軽く押し当てて<br>心拍が検出されるのを待ってください
                     </div>
                 </div>
 
-                <div class="ppg-canvas-container">
-                    <canvas id="ppgCanvas"></canvas>
+                <div class="camera-section">
+                    <div class="camera-container" id="cameraContainer">
+                        <video id="cameraVideo" autoplay playsinline muted></video>
+                    </div>
+                    <div class="camera-label" id="cameraLabel">カメラを起動中...</div>
                 </div>
 
-                <div class="heartbeat-display" id="heartbeatDisplay">
+                <div class="heartbeat-indicator">
                     <span class="heart-icon" id="heartIcon">❤️</span>
-                    <span id="bpmValue">--</span>
+                    <div class="bpm-display">
+                        <div class="bpm-value" id="bpmValue">--</div>
+                        <div class="bpm-label">BPM</div>
+                    </div>
                 </div>
-                <div class="bpm-label">測定中の心拍数 (BPM)</div>
 
-                <div class="timer-display" id="timerDisplay">30</div>
-                <div class="timer-label">残り時間（秒）</div>
+                <button class="btn btn-primary" id="readyBtn" disabled>心拍を検出したら押す</button>
+            </div>
 
-                <div class="status-text" id="statusText">カメラを起動しています...</div>
-
-                <div class="btn-group">
-                    <button class="btn btn-secondary" id="calibrateBtn">キャリブレーション</button>
-                    <button class="btn btn-primary" id="startTrialBtn" disabled>測定開始</button>
+            <!-- カメラエラー -->
+            <div id="cameraError" class="step-content hidden">
+                <div class="camera-error">
+                    <div class="error-icon">📷</div>
+                    <div class="error-title">カメラへのアクセスが必要です</div>
+                    <div class="error-message">
+                        このアプリは心拍測定のためにカメラを使用します。<br>
+                        ブラウザの設定でカメラへのアクセスを許可してください。
+                    </div>
+                    <button class="btn btn-warning" id="retryCamera">カメラを再起動</button>
+                    <div style="margin-top: 12px;">
+                        <button class="btn btn-secondary" id="openSettings">設定方法を見る</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- 入力画面 -->
-            <div id="inputScreen" style="display: none; flex-direction: column; align-items: center;">
-                <div class="phase-indicator" id="inputPhaseIndicator">試行 1 / 3 - 結果入力</div>
-                
-                <div class="instruction-text">
-                    今の測定中に感じた心拍の回数を<br>入力してください
+            <!-- ステップ2: 測定中 -->
+            <div id="step2" class="step-content hidden">
+                <div class="step-indicator">
+                    <div class="step-dot completed"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot active"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot"></div>
                 </div>
 
-                <div class="input-area show">
-                    <label for="perceivedCount">感じた心拍数：</label>
-                    <input type="number" id="perceivedCount" min="0" max="200" placeholder="0">
+                <div class="instruction-box">
+                    <div class="instruction-step">ステップ 2/4</div>
+                    <div class="instruction-text">
+                        目を閉じて、自分の心拍を<br>静かに数えてください
+                    </div>
                 </div>
 
-                <div style="margin-top: 20px;">
-                    <button class="btn btn-success" id="submitCountBtn">次へ進む</button>
+                <div class="timer-section">
+                    <div class="timer-value" id="timerValue">30</div>
+                    <div class="timer-label">残り時間（秒）</div>
+                </div>
+
+                <div class="heartbeat-indicator">
+                    <span class="heart-icon" id="heartIcon2">❤️</span>
+                    <div class="bpm-display">
+                        <div class="bpm-value" id="bpmValue2">--</div>
+                        <div class="bpm-label">検出中</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- 結果画面 -->
-            <div id="resultsScreen" style="display: none; flex-direction: column; align-items: center;">
-                <div class="results-container show">
+            <!-- ステップ3: 入力 -->
+            <div id="step3" class="step-content hidden">
+                <div class="step-indicator">
+                    <div class="step-dot completed"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot completed"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot active"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot"></div>
+                </div>
+
+                <div class="instruction-box">
+                    <div class="instruction-step">ステップ 3/4</div>
+                    <div class="instruction-text">
+                        あなたが数えた心拍の回数を<br>入力してください
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <label class="input-label">感じた心拍数</label>
+                    <input type="number" class="input-field" id="perceivedInput" min="0" max="200" placeholder="0" inputmode="numeric">
+                </div>
+
+                <button class="btn btn-success" id="submitBtn">結果を見る</button>
+            </div>
+
+            <!-- ステップ4: 結果 -->
+            <div id="step4" class="step-content hidden">
+                <div class="step-indicator">
+                    <div class="step-dot completed"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot completed"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot completed"></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot active"></div>
+                </div>
+
+                <div class="result-section">
                     <div class="result-card">
-                        <h3>心拍知覚精度スコア (IAc)</h3>
-                        <div class="result-score" id="finalScore">0.00</div>
-                        <div class="result-interpretation" id="scoreInterpretation">
-                            評価を計算中...
+                        <h3>あなたの内受容覚ランク</h3>
+                        <div class="result-rank" id="resultRank">-</div>
+                        <div class="result-description" id="resultDesc">-</div>
+                        <div class="result-detail">
+                            <div class="detail-item">
+                                <div class="detail-value" id="actualCount">-</div>
+                                <div class="detail-label">実測心拍</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-value" id="perceivedCount">-</div>
+                                <div class="detail-label">申告心拍</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-value error-value" id="errorCount">-</div>
+                                <div class="detail-label">誤差</div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="result-card trial-results">
-                        <h3>各試行の結果</h3>
-                        <div id="trialResultsList"></div>
+                    <div class="result-card">
+                        <h3>精度スコア (IAc)</h3>
+                        <div class="detail-value" id="iacScore" style="font-size: 1.8rem; color: #3498db;">-</div>
+                        <p style="font-size: 0.7rem; color: #888; margin-top: 8px;">
+                            Schandry法による心拍知覚精度（1.00に近いほど正確）
+                        </p>
                     </div>
 
-                    <div class="btn-group">
-                        <button class="btn btn-primary" id="retryBtn">再テスト</button>
-                    </div>
+                    <button class="btn btn-primary" id="retryBtn">もう一度測定する</button>
                 </div>
             </div>
         </main>
@@ -791,7 +811,7 @@
         </footer>
     </div>
 
-    <!-- サイドメニューオーバーレイ -->
+    <!-- メニューオーバーレイ -->
     <div class="menu-overlay" id="menuOverlay"></div>
 
     <!-- サイドメニュー -->
@@ -802,224 +822,152 @@
         </div>
         <div class="side-menu-content">
             <div class="menu-section">
-                <h3>🧠 神経科学的背景</h3>
+                <h3>🧠 内受容覚とは</h3>
                 <p>
-                    内受容覚（Interoception）とは、心拍、呼吸、空腹感など体内の状態を感知する能力です。
-                    島皮質（Insular Cortex）が中心的役割を担い、感情認識や意思決定にも関与します。
-                </p>
-                <p style="margin-top: 10px;">
-                    <strong>Schandry法</strong>（1981年）は、実際の心拍数と主観的に数えた心拍数を比較し、
-                    心拍知覚精度（IAc）を算出する標準的な評価方法です。
-                </p>
-                <p style="margin-top: 10px;">
-                    IAcスコアが高い人は、感情調整能力や身体的自己認識が優れている傾向があります。
+                    内受容覚（Interoception）は、心拍・呼吸・空腹感など体内の状態を感知する能力です。
+                    島皮質が中心的役割を担い、感情認識や意思決定にも関与しています。
                 </p>
             </div>
 
             <div class="menu-section">
-                <h3>📋 テスト手順</h3>
+                <h3>📊 ランクの目安</h3>
                 <p>
-                    1. 座位で静止し、リラックスします<br>
-                    2. 指先をカメラに当て、心拍を測定<br>
-                    3. 目を閉じて心拍を数えます（30秒×3回）<br>
-                    4. 感じた心拍数を入力<br>
-                    5. IAcスコアを算出
+                    <strong style="color: #f1c40f;">S:</strong> 誤差0-2回 - 極めて優秀<br>
+                    <strong style="color: #2ecc71;">A:</strong> 誤差3-5回 - 優秀<br>
+                    <strong style="color: #3498db;">B:</strong> 誤差6-10回 - 良好<br>
+                    <strong style="color: #9b59b6;">C:</strong> 誤差11-15回 - 平均的<br>
+                    <strong style="color: #e74c3c;">D:</strong> 誤差16回以上 - 要練習
                 </p>
             </div>
 
             <div class="menu-section">
                 <h3>⚙️ 設定</h3>
-                <div class="setting-group">
-                    <label>測定時間（秒）</label>
-                    <select id="trialDuration">
+                <div class="setting-item">
+                    <label>測定時間</label>
+                    <select id="durationSelect">
                         <option value="25">25秒</option>
                         <option value="30" selected>30秒</option>
-                        <option value="35">35秒</option>
                         <option value="45">45秒</option>
+                        <option value="60">60秒</option>
                     </select>
                 </div>
-                <div class="setting-group">
-                    <label>試行回数</label>
-                    <select id="trialCount">
-                        <option value="2">2回</option>
-                        <option value="3" selected>3回</option>
-                        <option value="4">4回</option>
-                        <option value="5">5回</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="menu-section">
-                <h3>📊 IAcスコアの解釈</h3>
-                <p>
-                    <strong>0.85以上:</strong> 非常に優れた内受容感覚<br>
-                    <strong>0.70-0.84:</strong> 良好な内受容感覚<br>
-                    <strong>0.50-0.69:</strong> 平均的な内受容感覚<br>
-                    <strong>0.50未満:</strong> 改善の余地あり
-                </p>
             </div>
 
             <div class="menu-section">
                 <h3>📚 参考文献</h3>
-                <p style="font-size: 0.8rem;">
+                <p style="font-size: 0.7rem;">
                     Schandry R. (1981). Heart beat perception and emotional experience. Psychophysiology, 18(4), 483-488.
                 </p>
             </div>
         </div>
     </div>
 
-    <!-- カウントダウンオーバーレイ -->
-    <div class="countdown-overlay" id="countdownOverlay">
-        <div class="countdown-number" id="countdownNumber">3</div>
-        <div class="countdown-text" id="countdownText">目を閉じて心拍を数える準備をしてください</div>
-    </div>
-
-    <!-- 隠しキャンバス（画像処理用） -->
+    <!-- 隠しキャンバス -->
     <canvas id="hiddenCanvas" width="100" height="100"></canvas>
 
     <script>
-        // ========================================
         // グローバル変数
-        // ========================================
         let audioContext = null;
         let videoStream = null;
-        let isCalibrated = false;
-        let isMeasuring = false;
-        let currentTrial = 0;
-        let trialDuration = 30;
-        let totalTrials = 3;
-        let trialResults = [];
-        let currentTrialBPM = 0;
-        let currentTrialBeats = 0;
-
-        // PPG処理用
-        let ppgData = [];
-        let ppgCanvas, ppgCtx;
-        let hiddenCanvas, hiddenCtx;
-        let lastBeatTime = 0;
-        let beatTimes = [];
-        let measurementStartTime = 0;
+        let isDetecting = false;
+        let measurementDuration = 30;
         let measurementTimer = null;
-        let ppgAnimationFrame = null;
+        let animationFrame = null;
 
-        // ピーク検出用
+        // PPG解析用
+        let ppgData = [];
         let baseline = 0;
         let threshold = 0;
         let peakDetected = false;
         let lastPeakTime = 0;
+        let beatCount = 0;
         let recentBPMs = [];
+        let currentBPM = 0;
+        let stableDetectionCount = 0;
 
-        // ========================================
         // DOM要素
-        // ========================================
-        const elements = {
-            splashScreen: document.getElementById('splashScreen'),
-            menuBtn: document.getElementById('menuBtn'),
-            sideMenu: document.getElementById('sideMenu'),
-            menuOverlay: document.getElementById('menuOverlay'),
-            closeMenuBtn: document.getElementById('closeMenuBtn'),
-            
-            startScreen: document.getElementById('startScreen'),
-            measurementScreen: document.getElementById('measurementScreen'),
-            inputScreen: document.getElementById('inputScreen'),
-            resultsScreen: document.getElementById('resultsScreen'),
-            
-            startBtn: document.getElementById('startBtn'),
-            calibrateBtn: document.getElementById('calibrateBtn'),
-            startTrialBtn: document.getElementById('startTrialBtn'),
-            submitCountBtn: document.getElementById('submitCountBtn'),
-            retryBtn: document.getElementById('retryBtn'),
-            
-            cameraVideo: document.getElementById('cameraVideo'),
-            cameraOverlay: document.getElementById('cameraOverlay'),
-            ppgCanvas: document.getElementById('ppgCanvas'),
-            hiddenCanvas: document.getElementById('hiddenCanvas'),
-            
-            progressDots: document.getElementById('progressDots'),
-            phaseIndicator: document.getElementById('phaseIndicator'),
-            heartIcon: document.getElementById('heartIcon'),
-            bpmValue: document.getElementById('bpmValue'),
-            timerDisplay: document.getElementById('timerDisplay'),
-            statusText: document.getElementById('statusText'),
-            
-            inputPhaseIndicator: document.getElementById('inputPhaseIndicator'),
-            perceivedCount: document.getElementById('perceivedCount'),
-            
-            finalScore: document.getElementById('finalScore'),
-            scoreInterpretation: document.getElementById('scoreInterpretation'),
-            trialResultsList: document.getElementById('trialResultsList'),
-            
-            countdownOverlay: document.getElementById('countdownOverlay'),
-            countdownNumber: document.getElementById('countdownNumber'),
-            countdownText: document.getElementById('countdownText'),
-            
-            trialDurationSelect: document.getElementById('trialDuration'),
-            trialCountSelect: document.getElementById('trialCount')
-        };
+        const elements = {};
 
-        // ========================================
         // 初期化
-        // ========================================
-        function init() {
-            // スプラッシュスクリーン
-            setTimeout(() => {
-                elements.splashScreen.classList.add('hide');
-            }, 2500);
-
-            // キャンバス初期化
-            ppgCanvas = elements.ppgCanvas;
-            ppgCtx = ppgCanvas.getContext('2d');
-            hiddenCanvas = elements.hiddenCanvas;
-            hiddenCtx = hiddenCanvas.getContext('2d');
-
-            // キャンバスサイズ調整
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM要素取得
+            elements.splashScreen = document.getElementById('splashScreen');
+            elements.menuBtn = document.getElementById('menuBtn');
+            elements.sideMenu = document.getElementById('sideMenu');
+            elements.menuOverlay = document.getElementById('menuOverlay');
+            elements.closeMenuBtn = document.getElementById('closeMenuBtn');
+            
+            elements.step1 = document.getElementById('step1');
+            elements.step2 = document.getElementById('step2');
+            elements.step3 = document.getElementById('step3');
+            elements.step4 = document.getElementById('step4');
+            elements.cameraError = document.getElementById('cameraError');
+            
+            elements.cameraVideo = document.getElementById('cameraVideo');
+            elements.cameraContainer = document.getElementById('cameraContainer');
+            elements.cameraLabel = document.getElementById('cameraLabel');
+            elements.heartIcon = document.getElementById('heartIcon');
+            elements.bpmValue = document.getElementById('bpmValue');
+            
+            elements.readyBtn = document.getElementById('readyBtn');
+            elements.retryCamera = document.getElementById('retryCamera');
+            elements.openSettings = document.getElementById('openSettings');
+            
+            elements.timerValue = document.getElementById('timerValue');
+            elements.heartIcon2 = document.getElementById('heartIcon2');
+            elements.bpmValue2 = document.getElementById('bpmValue2');
+            
+            elements.perceivedInput = document.getElementById('perceivedInput');
+            elements.submitBtn = document.getElementById('submitBtn');
+            
+            elements.resultRank = document.getElementById('resultRank');
+            elements.resultDesc = document.getElementById('resultDesc');
+            elements.actualCount = document.getElementById('actualCount');
+            elements.perceivedCount = document.getElementById('perceivedCount');
+            elements.errorCount = document.getElementById('errorCount');
+            elements.iacScore = document.getElementById('iacScore');
+            elements.retryBtn = document.getElementById('retryBtn');
+            
+            elements.durationSelect = document.getElementById('durationSelect');
+            elements.hiddenCanvas = document.getElementById('hiddenCanvas');
 
             // イベントリスナー
             elements.menuBtn.addEventListener('click', openMenu);
             elements.closeMenuBtn.addEventListener('click', closeMenu);
             elements.menuOverlay.addEventListener('click', closeMenu);
             
-            elements.startBtn.addEventListener('click', startTest);
-            elements.calibrateBtn.addEventListener('click', startCalibration);
-            elements.startTrialBtn.addEventListener('click', startTrial);
-            elements.submitCountBtn.addEventListener('click', submitCount);
-            elements.retryBtn.addEventListener('click', retryTest);
-
-            elements.trialDurationSelect.addEventListener('change', (e) => {
-                trialDuration = parseInt(e.target.value);
+            elements.readyBtn.addEventListener('click', startMeasurement);
+            elements.retryCamera.addEventListener('click', initCamera);
+            elements.openSettings.addEventListener('click', showSettingsHelp);
+            elements.submitBtn.addEventListener('click', showResults);
+            elements.retryBtn.addEventListener('click', resetTest);
+            
+            elements.durationSelect.addEventListener('change', (e) => {
+                measurementDuration = parseInt(e.target.value);
             });
 
-            elements.trialCountSelect.addEventListener('change', (e) => {
-                totalTrials = parseInt(e.target.value);
-            });
+            // スプラッシュ後に自動でカメラ起動
+            setTimeout(() => {
+                elements.splashScreen.classList.add('hide');
+                setTimeout(initCamera, 500);
+            }, 2000);
 
-            // AudioContext初期化（ユーザーインタラクション後）
+            // AudioContext初期化
             document.addEventListener('click', initAudio, { once: true });
             document.addEventListener('touchstart', initAudio, { once: true });
-        }
+        });
 
-        function resizeCanvas() {
-            const container = ppgCanvas.parentElement;
-            ppgCanvas.width = container.clientWidth;
-            ppgCanvas.height = container.clientHeight;
-        }
-
+        // AudioContext初期化
         async function initAudio() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioContext.state === 'suspended') {
                     await audioContext.resume();
                 }
-                // ダミー音で初期化
-                playBeep(1, 0.001);
             }
         }
 
-        // ========================================
         // メニュー
-        // ========================================
         function openMenu() {
             elements.sideMenu.classList.add('open');
             elements.menuOverlay.classList.add('show');
@@ -1030,280 +978,193 @@
             elements.menuOverlay.classList.remove('show');
         }
 
-        // ========================================
-        // テスト開始
-        // ========================================
-        async function startTest() {
-            showScreen('measurement');
-            await startCamera();
-            updateProgressDots();
-        }
-
-        // ========================================
-        // カメラ
-        // ========================================
-        async function startCamera() {
+        // カメラ初期化
+        async function initCamera() {
+            showStep('step1');
+            elements.cameraLabel.textContent = 'カメラを起動中...';
+            elements.readyBtn.disabled = true;
+            elements.cameraContainer.classList.remove('detecting');
+            
             try {
-                elements.statusText.textContent = 'カメラを起動しています...';
+                // 既存のストリームを停止
+                if (videoStream) {
+                    videoStream.getTracks().forEach(track => track.stop());
+                }
 
-                // 利用可能なカメラを取得
+                // デバイス一覧を取得
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(d => d.kind === 'videoinput');
                 
-                // 背面カメラの中から標準（広角）レンズを選択
-                // 望遠レンズを避けるため、最初の背面カメラを使用
                 let selectedDeviceId = null;
                 
+                // 標準カメラを選択（望遠を避ける）
                 for (const device of videoDevices) {
                     const label = device.label.toLowerCase();
-                    // 望遠、telephoto、zoom、2xなどを避ける
                     if (!label.includes('front') && 
                         !label.includes('telephoto') && 
                         !label.includes('tele') &&
                         !label.includes('zoom') &&
                         !label.includes('2x') &&
-                        !label.includes('3x') &&
-                        !label.includes('5x')) {
-                        // 広角またはメイン/標準カメラを優先
+                        !label.includes('3x')) {
                         if (label.includes('wide') || label.includes('main') || 
-                            label.includes('back') || label.includes('rear') ||
-                            label.includes('0') || !selectedDeviceId) {
+                            label.includes('back') || !selectedDeviceId) {
                             selectedDeviceId = device.deviceId;
-                            console.log('Selected camera:', device.label);
                         }
                     }
                 }
 
-                // カメラの設定
                 const constraints = {
                     video: {
-                        width: { ideal: 640, max: 1280 },
-                        height: { ideal: 480, max: 720 },
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
                         frameRate: { ideal: 30 }
                     }
                 };
 
-                // デバイスIDが取得できた場合は指定
                 if (selectedDeviceId) {
                     constraints.video.deviceId = { exact: selectedDeviceId };
                 } else {
-                    // フォールバック：環境カメラを指定（ただしexactではない）
                     constraints.video.facingMode = 'environment';
                 }
 
                 videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                 elements.cameraVideo.srcObject = videoStream;
-                
                 await elements.cameraVideo.play();
 
-                // フラッシュをオンにする試行（PPG測定精度向上のため）
+                // フラッシュをオン
                 const track = videoStream.getVideoTracks()[0];
                 const capabilities = track.getCapabilities();
-                
-                if (capabilities.torch) {
+                if (capabilities && capabilities.torch) {
                     try {
-                        await track.applyConstraints({
-                            advanced: [{ torch: true }]
-                        });
-                        console.log('Torch enabled');
+                        await track.applyConstraints({ advanced: [{ torch: true }] });
                     } catch (e) {
-                        console.log('Could not enable torch:', e);
+                        console.log('Torch not available');
                     }
                 }
 
-                elements.statusText.textContent = '指先をカメラに軽く押し当ててください';
-                elements.calibrateBtn.disabled = false;
+                elements.cameraLabel.textContent = '指先をカメラに押し当ててください';
+                startPPGDetection();
 
             } catch (error) {
                 console.error('Camera error:', error);
-                elements.statusText.textContent = 'カメラの起動に失敗しました。カメラへのアクセスを許可してください。';
+                showCameraError();
             }
         }
 
-        // ========================================
-        // キャリブレーション
-        // ========================================
-        async function startCalibration() {
-            elements.statusText.textContent = 'キャリブレーション中... 5秒間動かないでください';
-            elements.calibrateBtn.disabled = true;
-            elements.startTrialBtn.disabled = true;
-
-            ppgData = [];
-            let calibrationData = [];
-            let frames = 0;
-            const calibrationDuration = 5000;
-            const startTime = Date.now();
-
-            // PPG解析開始
-            function analyzeFrame() {
-                if (Date.now() - startTime < calibrationDuration) {
-                    const value = getPPGValue();
-                    if (value !== null) {
-                        calibrationData.push(value);
-                    }
-                    ppgAnimationFrame = requestAnimationFrame(analyzeFrame);
-                } else {
-                    finishCalibration(calibrationData);
-                }
-            }
-
-            analyzeFrame();
+        // カメラエラー表示
+        function showCameraError() {
+            elements.step1.classList.add('hidden');
+            elements.cameraError.classList.remove('hidden');
         }
 
-        function finishCalibration(data) {
-            if (data.length < 50) {
-                elements.statusText.textContent = '信号が弱いです。指をカメラにしっかり当ててください';
-                elements.calibrateBtn.disabled = false;
-                return;
-            }
-
-            // ベースラインと閾値を計算
-            const sum = data.reduce((a, b) => a + b, 0);
-            baseline = sum / data.length;
+        // 設定方法を表示
+        function showSettingsHelp() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
             
-            const variance = data.reduce((acc, val) => acc + Math.pow(val - baseline, 2), 0) / data.length;
-            const stdDev = Math.sqrt(variance);
-            threshold = stdDev * 0.6;
-
-            isCalibrated = true;
-            elements.statusText.textContent = 'キャリブレーション完了！「測定開始」を押してください';
-            elements.cameraOverlay.classList.add('hidden');
-            elements.calibrateBtn.disabled = false;
-            elements.startTrialBtn.disabled = false;
-
-            // PPG波形の描画を開始
-            startPPGVisualization();
-
-            playBeep(800, 0.2);
-        }
-
-        // ========================================
-        // PPG値取得
-        // ========================================
-        function getPPGValue() {
-            try {
-                hiddenCtx.drawImage(elements.cameraVideo, 0, 0, 100, 100);
-                const imageData = hiddenCtx.getImageData(30, 30, 40, 40);
-                const data = imageData.data;
-
-                let redSum = 0;
-                let count = 0;
-
-                for (let i = 0; i < data.length; i += 4) {
-                    redSum += data[i]; // Red channel
-                    count++;
-                }
-
-                return redSum / count;
-            } catch (e) {
-                return null;
+            let message = '';
+            if (isIOS) {
+                message = '【iOSの場合】\n設定 > Safari > カメラ で「許可」を選択してください。\n\nその後、このページを再読み込みしてください。';
+            } else if (isAndroid) {
+                message = '【Androidの場合】\n設定 > アプリ > ブラウザアプリ > 権限 > カメラ で許可してください。\n\nまたは、アドレスバー横の🔒マークをタップし、カメラを許可してください。';
+            } else {
+                message = 'ブラウザの設定でカメラへのアクセスを許可してください。\n\nアドレスバー横のアイコンからサイトの設定を変更できます。';
             }
+            
+            alert(message);
         }
 
-        // ========================================
-        // PPG波形可視化
-        // ========================================
-        function startPPGVisualization() {
-            function drawPPG() {
-                const value = getPPGValue();
-                if (value !== null) {
-                    ppgData.push(value);
-                    if (ppgData.length > ppgCanvas.width) {
-                        ppgData.shift();
+        // PPG検出
+        function startPPGDetection() {
+            const ctx = elements.hiddenCanvas.getContext('2d');
+            ppgData = [];
+            stableDetectionCount = 0;
+            
+            function analyze() {
+                try {
+                    ctx.drawImage(elements.cameraVideo, 0, 0, 100, 100);
+                    const imageData = ctx.getImageData(30, 30, 40, 40);
+                    const data = imageData.data;
+
+                    let redSum = 0;
+                    for (let i = 0; i < data.length; i += 4) {
+                        redSum += data[i];
+                    }
+                    const avgRed = redSum / (data.length / 4);
+
+                    ppgData.push(avgRed);
+                    if (ppgData.length > 150) ppgData.shift();
+
+                    // キャリブレーション
+                    if (ppgData.length === 50) {
+                        const sum = ppgData.reduce((a, b) => a + b, 0);
+                        baseline = sum / ppgData.length;
+                        const variance = ppgData.reduce((acc, val) => acc + Math.pow(val - baseline, 2), 0) / ppgData.length;
+                        threshold = Math.sqrt(variance) * 0.5;
                     }
 
                     // ピーク検出
-                    detectPeak(value);
+                    if (ppgData.length > 50) {
+                        detectPeak(avgRed);
+                    }
 
-                    // 描画
-                    drawPPGWaveform();
-                }
+                } catch (e) {}
 
-                if (isCalibrated) {
-                    ppgAnimationFrame = requestAnimationFrame(drawPPG);
-                }
+                animationFrame = requestAnimationFrame(analyze);
             }
 
-            drawPPG();
+            analyze();
         }
 
-        function drawPPGWaveform() {
-            const width = ppgCanvas.width;
-            const height = ppgCanvas.height;
-
-            ppgCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ppgCtx.fillRect(0, 0, width, height);
-
-            if (ppgData.length < 2) return;
-
-            // データの正規化
-            const min = Math.min(...ppgData);
-            const max = Math.max(...ppgData);
-            const range = max - min || 1;
-
-            ppgCtx.beginPath();
-            ppgCtx.strokeStyle = '#e74c3c';
-            ppgCtx.lineWidth = 2;
-
-            for (let i = 0; i < ppgData.length; i++) {
-                const x = (i / ppgData.length) * width;
-                const normalizedValue = (ppgData[i] - min) / range;
-                const y = height - (normalizedValue * height * 0.8 + height * 0.1);
-
-                if (i === 0) {
-                    ppgCtx.moveTo(x, y);
-                } else {
-                    ppgCtx.lineTo(x, y);
-                }
-            }
-
-            ppgCtx.stroke();
-        }
-
-        // ========================================
-        // ピーク検出（心拍検出）
-        // ========================================
+        // ピーク検出
         function detectPeak(value) {
             const now = Date.now();
             const deviation = value - baseline;
-
-            // 最小間隔（300ms = 200BPM上限）
             const minInterval = 300;
 
             if (deviation > threshold && !peakDetected && (now - lastPeakTime) > minInterval) {
                 peakDetected = true;
+                const interval = now - lastPeakTime;
                 lastPeakTime = now;
 
-                if (isMeasuring) {
-                    beatTimes.push(now);
-                    currentTrialBeats++;
+                if (isDetecting) {
+                    beatCount++;
                 }
 
                 // BPM計算
-                if (beatTimes.length >= 2) {
-                    const recentBeats = beatTimes.slice(-5);
-                    let totalInterval = 0;
-                    for (let i = 1; i < recentBeats.length; i++) {
-                        totalInterval += recentBeats[i] - recentBeats[i - 1];
-                    }
-                    const avgInterval = totalInterval / (recentBeats.length - 1);
-                    const bpm = Math.round(60000 / avgInterval);
-
-                    if (bpm >= 40 && bpm <= 200) {
+                if (interval > 0 && interval < 2000) {
+                    const bpm = Math.round(60000 / interval);
+                    if (bpm >= 40 && bpm <= 180) {
                         recentBPMs.push(bpm);
                         if (recentBPMs.length > 5) recentBPMs.shift();
                         
                         const avgBPM = Math.round(recentBPMs.reduce((a, b) => a + b, 0) / recentBPMs.length);
-                        currentTrialBPM = avgBPM;
+                        currentBPM = avgBPM;
+                        
                         elements.bpmValue.textContent = avgBPM;
+                        if (isDetecting) {
+                            elements.bpmValue2.textContent = avgBPM;
+                        }
+
+                        // 安定検出カウント
+                        stableDetectionCount++;
+                        if (stableDetectionCount >= 3) {
+                            elements.cameraContainer.classList.add('detecting');
+                            elements.cameraLabel.textContent = '心拍を検出中！準備ができたらボタンを押してください';
+                            elements.readyBtn.disabled = false;
+                        }
                     }
                 }
 
-                // ハートアイコンのアニメーション
-                elements.heartIcon.classList.add('beating');
+                // ハートアニメーション
+                elements.heartIcon.classList.add('beat');
+                if (isDetecting) {
+                    elements.heartIcon2.classList.add('beat');
+                }
                 setTimeout(() => {
-                    elements.heartIcon.classList.remove('beating');
-                }, 200);
+                    elements.heartIcon.classList.remove('beat');
+                    elements.heartIcon2.classList.remove('beat');
+                }, 100);
 
                 playHeartbeat();
 
@@ -1312,352 +1173,194 @@
             }
         }
 
-        // ========================================
-        // 試行開始
-        // ========================================
-        async function startTrial() {
-            elements.startTrialBtn.disabled = true;
-            elements.calibrateBtn.disabled = true;
-
-            // カウントダウン
-            await showCountdown();
-
-            // 測定開始
-            isMeasuring = true;
-            beatTimes = [];
-            currentTrialBeats = 0;
-            measurementStartTime = Date.now();
-
-            elements.statusText.textContent = '目を閉じて心拍を数えてください';
-            elements.timerDisplay.textContent = trialDuration;
-
-            // タイマー
+        // 測定開始
+        function startMeasurement() {
+            showStep('step2');
+            isDetecting = true;
+            beatCount = 0;
+            
+            elements.timerValue.textContent = measurementDuration;
+            
+            let remaining = measurementDuration;
+            
+            playBeep(880, 0.3);
+            
             measurementTimer = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - measurementStartTime) / 1000);
-                const remaining = trialDuration - elapsed;
+                remaining--;
+                elements.timerValue.textContent = remaining;
                 
                 if (remaining <= 0) {
-                    endTrial();
-                } else {
-                    elements.timerDisplay.textContent = remaining;
+                    endMeasurement();
+                } else if (remaining <= 3) {
+                    playBeep(660, 0.15);
                 }
-            }, 100);
+            }, 1000);
         }
 
-        async function showCountdown() {
-            return new Promise((resolve) => {
-                elements.countdownOverlay.classList.add('show');
-                let count = 3;
-                elements.countdownNumber.textContent = count;
-
-                const interval = setInterval(() => {
-                    count--;
-                    if (count > 0) {
-                        elements.countdownNumber.textContent = count;
-                        playBeep(660, 0.15);
-                    } else {
-                        clearInterval(interval);
-                        playBeep(880, 0.3);
-                        elements.countdownOverlay.classList.remove('show');
-                        resolve();
-                    }
-                }, 1000);
-
-                playBeep(440, 0.15);
-            });
-        }
-
-        // ========================================
-        // 試行終了
-        // ========================================
-        function endTrial() {
+        // 測定終了
+        function endMeasurement() {
             clearInterval(measurementTimer);
-            isMeasuring = false;
-
-            // 実際の心拍数を計算
-            const actualBeats = beatTimes.length;
+            isDetecting = false;
             
-            // 結果を一時保存
-            trialResults.push({
-                trialNumber: currentTrial + 1,
-                actualBeats: actualBeats,
-                measuredBPM: currentTrialBPM,
-                perceivedBeats: 0 // 後で入力
-            });
-
-            playBeep(600, 0.5);
-
-            // 入力画面へ
-            showInputScreen();
-        }
-
-        function showInputScreen() {
-            showScreen('input');
-            elements.inputPhaseIndicator.textContent = `試行 ${currentTrial + 1} / ${totalTrials} - 結果入力`;
-            elements.perceivedCount.value = '';
-            elements.perceivedCount.focus();
-        }
-
-        // ========================================
-        // カウント入力
-        // ========================================
-        function submitCount() {
-            const perceived = parseInt(elements.perceivedCount.value) || 0;
+            playBeep(440, 0.5);
             
-            if (perceived < 0) {
-                alert('0以上の数値を入力してください');
-                return;
-            }
-
-            // 結果を更新
-            trialResults[currentTrial].perceivedBeats = perceived;
-
-            currentTrial++;
-            updateProgressDots();
-
-            if (currentTrial >= totalTrials) {
-                // 全試行完了
-                showResults();
-            } else {
-                // 次の試行へ
-                showScreen('measurement');
-                elements.phaseIndicator.textContent = `試行 ${currentTrial + 1} / ${totalTrials}`;
-                elements.statusText.textContent = '「測定開始」を押して次の試行を開始';
-                elements.startTrialBtn.disabled = false;
-                elements.calibrateBtn.disabled = false;
-            }
+            showStep('step3');
+            elements.perceivedInput.value = '';
+            setTimeout(() => {
+                elements.perceivedInput.focus();
+            }, 300);
         }
 
-        // ========================================
         // 結果表示
-        // ========================================
         function showResults() {
-            stopCamera();
-            showScreen('results');
-
-            // IAcスコア計算（Schandry法）
-            let scoreSum = 0;
-            let trialListHTML = '';
-
-            for (const trial of trialResults) {
-                const actual = trial.actualBeats;
-                const perceived = trial.perceivedBeats;
-                
-                let trialScore = 0;
-                if (actual > 0) {
-                    trialScore = 1 - (Math.abs(actual - perceived) / actual);
-                    trialScore = Math.max(0, trialScore); // 負の値は0に
-                }
-                scoreSum += trialScore;
-
-                trialListHTML += `
-                    <div class="trial-row">
-                        <span>試行 ${trial.trialNumber}</span>
-                        <span>実測: ${actual}回</span>
-                        <span>申告: ${perceived}回</span>
-                        <span>精度: ${(trialScore * 100).toFixed(1)}%</span>
-                    </div>
-                `;
+            const perceived = parseInt(elements.perceivedInput.value) || 0;
+            const actual = beatCount;
+            const error = Math.abs(actual - perceived);
+            
+            // IAcスコア計算
+            let iac = 0;
+            if (actual > 0) {
+                iac = Math.max(0, 1 - (error / actual));
             }
 
-            const iacScore = scoreSum / trialResults.length;
-            elements.finalScore.textContent = iacScore.toFixed(3);
-            elements.trialResultsList.innerHTML = trialListHTML;
-
-            // 解釈
-            let interpretation = '';
-            if (iacScore >= 0.85) {
-                interpretation = '🌟 非常に優れた内受容感覚です！身体からの信号を正確に感知できています。';
-                elements.finalScore.style.color = '#2ecc71';
-            } else if (iacScore >= 0.70) {
-                interpretation = '👍 良好な内受容感覚です。身体への気づきが高いレベルにあります。';
-                elements.finalScore.style.color = '#3498db';
-            } else if (iacScore >= 0.50) {
-                interpretation = '📊 平均的な内受容感覚です。マインドフルネス練習で向上が期待できます。';
-                elements.finalScore.style.color = '#f39c12';
+            // ランク判定
+            let rank, rankClass, description;
+            if (error <= 2) {
+                rank = 'S';
+                rankClass = 'rank-S';
+                description = '極めて優秀な内受容覚です！';
+            } else if (error <= 5) {
+                rank = 'A';
+                rankClass = 'rank-A';
+                description = '優秀な内受容覚です！';
+            } else if (error <= 10) {
+                rank = 'B';
+                rankClass = 'rank-B';
+                description = '良好な内受容覚です';
+            } else if (error <= 15) {
+                rank = 'C';
+                rankClass = 'rank-C';
+                description = '平均的な内受容覚です';
             } else {
-                interpretation = '💡 内受容感覚の向上余地があります。瞑想やボディスキャンがおすすめです。';
-                elements.finalScore.style.color = '#e74c3c';
+                rank = 'D';
+                rankClass = 'rank-D';
+                description = 'トレーニングで向上できます';
             }
 
-            elements.scoreInterpretation.textContent = interpretation;
+            // 表示更新
+            elements.resultRank.textContent = rank;
+            elements.resultRank.className = 'result-rank ' + rankClass;
+            elements.resultDesc.textContent = description;
+            elements.actualCount.textContent = actual + '回';
+            elements.perceivedCount.textContent = perceived + '回';
+            
+            const diff = perceived - actual;
+            elements.errorCount.textContent = (diff >= 0 ? '+' : '') + diff + '回';
+            elements.iacScore.textContent = iac.toFixed(3);
 
+            showStep('step4');
             playFanfare();
         }
 
-        // ========================================
-        // 再テスト
-        // ========================================
-        async function retryTest() {
-            currentTrial = 0;
-            trialResults = [];
-            isCalibrated = false;
-            currentTrialBPM = 0;
-            currentTrialBeats = 0;
+        // リセット
+        function resetTest() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            
             ppgData = [];
-            beatTimes = [];
             recentBPMs = [];
-
+            beatCount = 0;
+            stableDetectionCount = 0;
+            currentBPM = 0;
+            
+            elements.cameraContainer.classList.remove('detecting');
             elements.bpmValue.textContent = '--';
-            elements.timerDisplay.textContent = trialDuration;
-            elements.cameraOverlay.classList.remove('hidden');
-            elements.startTrialBtn.disabled = true;
-
-            showScreen('measurement');
-            await startCamera();
-            updateProgressDots();
+            elements.readyBtn.disabled = true;
+            
+            initCamera();
         }
 
-        // ========================================
-        // カメラ停止
-        // ========================================
-        function stopCamera() {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-                videoStream = null;
-            }
-            if (ppgAnimationFrame) {
-                cancelAnimationFrame(ppgAnimationFrame);
-            }
-            isCalibrated = false;
+        // ステップ表示
+        function showStep(stepId) {
+            elements.step1.classList.add('hidden');
+            elements.step2.classList.add('hidden');
+            elements.step3.classList.add('hidden');
+            elements.step4.classList.add('hidden');
+            elements.cameraError.classList.add('hidden');
+            
+            document.getElementById(stepId).classList.remove('hidden');
         }
 
-        // ========================================
-        // 画面切り替え
-        // ========================================
-        function showScreen(screenName) {
-            elements.startScreen.style.display = 'none';
-            elements.measurementScreen.style.display = 'none';
-            elements.inputScreen.style.display = 'none';
-            elements.resultsScreen.style.display = 'none';
-
-            switch (screenName) {
-                case 'start':
-                    elements.startScreen.style.display = 'flex';
-                    break;
-                case 'measurement':
-                    elements.measurementScreen.style.display = 'flex';
-                    break;
-                case 'input':
-                    elements.inputScreen.style.display = 'flex';
-                    break;
-                case 'results':
-                    elements.resultsScreen.style.display = 'flex';
-                    break;
-            }
-        }
-
-        // ========================================
-        // 進捗ドット更新
-        // ========================================
-        function updateProgressDots() {
-            let dotsHTML = '';
-            for (let i = 0; i < totalTrials; i++) {
-                let className = 'progress-dot';
-                if (i < currentTrial) {
-                    className += ' completed';
-                } else if (i === currentTrial) {
-                    className += ' active';
-                }
-                dotsHTML += `<div class="${className}"></div>`;
-            }
-            elements.progressDots.innerHTML = dotsHTML;
-            elements.phaseIndicator.textContent = `試行 ${currentTrial + 1} / ${totalTrials}`;
-        }
-
-        // ========================================
-        // オーディオ
-        // ========================================
-        function playBeep(frequency, duration) {
+        // 音声
+        function playBeep(freq, dur) {
             if (!audioContext) return;
-
             try {
                 const osc = audioContext.createOscillator();
                 const gain = audioContext.createGain();
                 const now = audioContext.currentTime;
-
+                
                 osc.type = 'sine';
-                osc.frequency.value = frequency;
-
+                osc.frequency.value = freq;
                 gain.gain.setValueAtTime(0, now);
                 gain.gain.linearRampToValueAtTime(0.3, now + 0.01);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
+                gain.gain.exponentialRampToValueAtTime(0.01, now + dur);
+                
                 osc.connect(gain);
                 gain.connect(audioContext.destination);
-
                 osc.start(now);
-                osc.stop(now + duration);
-            } catch (e) {
-                console.error('Audio error:', e);
-            }
+                osc.stop(now + dur);
+            } catch (e) {}
         }
 
         function playHeartbeat() {
             if (!audioContext) return;
-
             try {
                 const osc = audioContext.createOscillator();
                 const gain = audioContext.createGain();
                 const now = audioContext.currentTime;
-
+                
                 osc.type = 'sine';
                 osc.frequency.value = 80;
-
                 gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.15, now + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-
+                gain.gain.linearRampToValueAtTime(0.1, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                
                 osc.connect(gain);
                 gain.connect(audioContext.destination);
-
                 osc.start(now);
-                osc.stop(now + 0.15);
+                osc.stop(now + 0.12);
             } catch (e) {}
         }
 
         async function playFanfare() {
             const notes = [
-                { freq: 523, dur: 0.15 },
-                { freq: 659, dur: 0.15 },
-                { freq: 784, dur: 0.15 },
-                { freq: 1047, dur: 0.4 }
+                { freq: 523, dur: 0.12 },
+                { freq: 659, dur: 0.12 },
+                { freq: 784, dur: 0.12 },
+                { freq: 1047, dur: 0.3 }
             ];
-
             for (const note of notes) {
                 playBeep(note.freq, note.dur);
-                await new Promise(r => setTimeout(r, note.dur * 800));
+                await new Promise(r => setTimeout(r, note.dur * 700));
             }
         }
 
-        // ========================================
-        // 初期化実行
-        // ========================================
-        init();
-
-        // ========================================
-        // Service Worker登録
-        // ========================================
+        // Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('SW registered'))
-                    .catch(err => console.log('SW registration failed:', err));
+                    .catch(err => console.log('SW error:', err));
             });
         }
 
-        // ========================================
         // スクロール防止
-        // ========================================
         document.addEventListener('touchmove', (e) => {
-            if (!e.target.closest('.side-menu-content')) {
+            if (!e.target.closest('.side-menu-content') && !e.target.closest('.main-area')) {
                 e.preventDefault();
             }
         }, { passive: false });
-
-        window.addEventListener('scroll', () => {
-            window.scrollTo(0, 0);
-        });
     </script>
 </body>
 </html>
