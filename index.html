@@ -978,7 +978,7 @@
             elements.menuOverlay.classList.remove('show');
         }
 
-        // カメラ初期化（2段階方式：許可後に広角カメラを選択）
+        // カメラ初期化（シンプル・確実版）
         async function initCamera() {
             showStep('step1');
             elements.cameraLabel.textContent = 'カメラを起動中...';
@@ -989,100 +989,32 @@
                 // 既存のストリームを停止
                 if (videoStream) {
                     videoStream.getTracks().forEach(track => track.stop());
+                    videoStream = null;
                 }
 
-                // ステップ1: まずシンプルに起動して許可を得る
-                let tempStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' }
-                });
-                
-                // 許可を得たらすぐ停止
-                tempStream.getTracks().forEach(track => track.stop());
-
-                // ステップ2: デバイス一覧を取得して広角カメラを選択
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(d => d.kind === 'videoinput');
-                
-                console.log('Available cameras:', videoDevices.map(d => d.label));
-                
-                let selectedDeviceId = null;
-                let fallbackDeviceId = null;
-                
-                // 広角/メインカメラを探す（望遠を除外）
-                for (const device of videoDevices) {
-                    const label = device.label.toLowerCase();
-                    
-                    // フロントカメラは除外
-                    if (label.includes('front') || label.includes('前面')) {
-                        continue;
-                    }
-                    
-                    // 望遠カメラは除外
-                    if (label.includes('telephoto') || 
-                        label.includes('tele') ||
-                        label.includes('望遠') ||
-                        label.includes('2x') ||
-                        label.includes('3x') ||
-                        label.includes('5x') ||
-                        label.includes('10x') ||
-                        label.includes('zoom')) {
-                        continue;
-                    }
-                    
-                    // 広角/メインカメラを優先
-                    if (label.includes('wide') || 
-                        label.includes('広角') ||
-                        label.includes('main') ||
-                        label.includes('メイン') ||
-                        label.includes('back 0') ||
-                        label.includes('camera 0') ||
-                        label.includes('rear camera')) {
-                        selectedDeviceId = device.deviceId;
-                        console.log('Selected wide/main camera:', device.label);
-                        break;
-                    }
-                    
-                    // フォールバック用（最初に見つかった背面カメラ）
-                    if (!fallbackDeviceId) {
-                        fallbackDeviceId = device.deviceId;
-                    }
-                }
-                
-                // 広角が見つからなければフォールバック
-                if (!selectedDeviceId) {
-                    selectedDeviceId = fallbackDeviceId;
-                    console.log('Using fallback camera');
-                }
-
-                // ステップ3: 選択したカメラで起動
-                const constraints = {
+                // シンプルに背面カメラを起動
+                videoStream = await navigator.mediaDevices.getUserMedia({
                     video: {
+                        facingMode: { ideal: 'environment' },
                         width: { ideal: 640 },
                         height: { ideal: 480 }
                     }
-                };
+                });
                 
-                if (selectedDeviceId) {
-                    constraints.video.deviceId = { exact: selectedDeviceId };
-                } else {
-                    constraints.video.facingMode = 'environment';
-                }
-
-                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                 elements.cameraVideo.srcObject = videoStream;
                 await elements.cameraVideo.play();
 
-                // フラッシュをオン（PPG測定精度向上）
+                // フラッシュをオン
                 try {
                     const track = videoStream.getVideoTracks()[0];
-                    console.log('Using camera:', track.label);
-                    const capabilities = track.getCapabilities();
-                    if (capabilities && capabilities.torch) {
+                    console.log('Camera started:', track.label);
+                    const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+                    if (capabilities.torch) {
                         await track.applyConstraints({ advanced: [{ torch: true }] });
                         console.log('Torch enabled');
                     }
                 } catch (e) {
-                    console.log('Torch not available');
+                    console.log('Torch not available:', e);
                 }
 
                 elements.cameraLabel.textContent = '指先をカメラに押し当ててください';
@@ -1117,12 +1049,11 @@
             alert(message);
         }
 
-        // PPG検出（精度改善版）
+        // PPG検出（シンプル版）
         function startPPGDetection() {
             const ctx = elements.hiddenCanvas.getContext('2d');
             ppgData = [];
             stableDetectionCount = 0;
-            let calibrationComplete = false;
             
             function analyze() {
                 try {
@@ -1131,45 +1062,30 @@
                     const data = imageData.data;
 
                     let redSum = 0;
-                    let greenSum = 0;
                     for (let i = 0; i < data.length; i += 4) {
-                        redSum += data[i];      // Red
-                        greenSum += data[i+1];  // Green
+                        redSum += data[i];
                     }
-                    const pixelCount = data.length / 4;
-                    const avgRed = redSum / pixelCount;
-                    const avgGreen = greenSum / pixelCount;
-                    
-                    // 赤と緑の比率（指が当たっているかの判定）
-                    const redRatio = avgRed / (avgGreen + 1);
+                    const avgRed = redSum / (data.length / 4);
 
                     ppgData.push(avgRed);
-                    if (ppgData.length > 200) ppgData.shift();
+                    if (ppgData.length > 150) ppgData.shift();
 
-                    // キャリブレーション（60サンプル後、指が当たっている場合）
-                    if (ppgData.length === 60 && redRatio > 1.2) {
+                    // キャリブレーション（50サンプル後）
+                    if (ppgData.length === 50) {
                         const sum = ppgData.reduce((a, b) => a + b, 0);
                         baseline = sum / ppgData.length;
                         const variance = ppgData.reduce((acc, val) => acc + Math.pow(val - baseline, 2), 0) / ppgData.length;
-                        threshold = Math.sqrt(variance) * 0.4; // 閾値を少し下げる
-                        calibrationComplete = true;
-                        console.log('Calibration complete. Baseline:', baseline, 'Threshold:', threshold);
-                    }
-
-                    // 指が当たっていない場合の警告
-                    if (ppgData.length > 30 && redRatio < 1.1) {
-                        elements.cameraLabel.textContent = '指をもっとしっかり押し当ててください';
-                        elements.cameraContainer.classList.remove('detecting');
-                        stableDetectionCount = 0;
+                        threshold = Math.sqrt(variance) * 0.4;
+                        console.log('Calibration done. Baseline:', baseline, 'Threshold:', threshold);
                     }
 
                     // ピーク検出
-                    if (calibrationComplete && redRatio > 1.2) {
+                    if (ppgData.length > 50) {
                         detectPeak(avgRed);
                     }
 
                 } catch (e) {
-                    console.error('PPG analysis error:', e);
+                    console.error('PPG error:', e);
                 }
 
                 animationFrame = requestAnimationFrame(analyze);
