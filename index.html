@@ -255,6 +255,22 @@
             color: #aaa;
         }
 
+        .btn-camera-switch {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: #fff;
+            cursor: pointer;
+            display: none;
+        }
+
+        .btn-camera-switch:active {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
         /* 心拍インジケーター */
         .heartbeat-indicator {
             display: flex;
@@ -670,6 +686,7 @@
                         <video id="cameraVideo" autoplay playsinline muted></video>
                     </div>
                     <div class="camera-label" id="cameraLabel">カメラを起動中...</div>
+                    <button class="btn-camera-switch" id="switchCameraBtn">📷 カメラ切替</button>
                 </div>
 
                 <div class="heartbeat-indicator">
@@ -874,6 +891,10 @@
         let measurementTimer = null;
         let animationFrame = null;
 
+        // カメラ関連
+        let availableCameras = [];
+        let currentCameraIndex = 0;
+
         // PPG解析用
         let ppgData = [];
         let baseline = 0;
@@ -912,6 +933,7 @@
             elements.readyBtn = document.getElementById('readyBtn');
             elements.retryCamera = document.getElementById('retryCamera');
             elements.openSettings = document.getElementById('openSettings');
+            elements.switchCameraBtn = document.getElementById('switchCameraBtn');
             
             elements.timerValue = document.getElementById('timerValue');
             elements.heartIcon2 = document.getElementById('heartIcon2');
@@ -939,6 +961,7 @@
             elements.readyBtn.addEventListener('click', startMeasurement);
             elements.retryCamera.addEventListener('click', initCamera);
             elements.openSettings.addEventListener('click', showSettingsHelp);
+            elements.switchCameraBtn.addEventListener('click', switchCamera);
             elements.submitBtn.addEventListener('click', showResults);
             elements.retryBtn.addEventListener('click', resetTest);
             
@@ -978,7 +1001,7 @@
             elements.menuOverlay.classList.remove('show');
         }
 
-        // カメラ初期化（シンプル・確実版）
+        // カメラ初期化
         async function initCamera() {
             showStep('step1');
             elements.cameraLabel.textContent = 'カメラを起動中...';
@@ -992,10 +1015,89 @@
                     videoStream = null;
                 }
 
-                // シンプルに背面カメラを起動
+                // まず許可を得るためにシンプルに起動
+                videoStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } }
+                });
+                
+                elements.cameraVideo.srcObject = videoStream;
+                await elements.cameraVideo.play();
+
+                // カメラリストを取得
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                availableCameras = devices.filter(d => d.kind === 'videoinput');
+                console.log('Available cameras:', availableCameras.map(d => d.label));
+
+                // 現在のカメラのインデックスを特定
+                const currentTrack = videoStream.getVideoTracks()[0];
+                const currentLabel = currentTrack.label;
+                console.log('Current camera:', currentLabel);
+                
+                for (let i = 0; i < availableCameras.length; i++) {
+                    if (availableCameras[i].label === currentLabel) {
+                        currentCameraIndex = i;
+                        break;
+                    }
+                }
+
+                // フラッシュをオン
+                try {
+                    const capabilities = currentTrack.getCapabilities ? currentTrack.getCapabilities() : {};
+                    if (capabilities.torch) {
+                        await currentTrack.applyConstraints({ advanced: [{ torch: true }] });
+                    }
+                } catch (e) {
+                    console.log('Torch not available');
+                }
+
+                elements.cameraLabel.textContent = '指先をカメラに押し当ててください';
+                
+                // カメラが複数あれば切替ボタンを表示
+                if (availableCameras.length > 1) {
+                    elements.switchCameraBtn.style.display = 'inline-block';
+                } else {
+                    elements.switchCameraBtn.style.display = 'none';
+                }
+                
+                startPPGDetection();
+
+            } catch (error) {
+                console.error('Camera error:', error);
+                showCameraError();
+            }
+        }
+
+        // カメラ切替
+        async function switchCamera() {
+            if (availableCameras.length <= 1) return;
+            
+            // PPG検出を停止
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+            
+            // 現在のストリームを停止
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            
+            // 次のカメラに切替
+            currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
+            const nextCamera = availableCameras[currentCameraIndex];
+            
+            elements.cameraLabel.textContent = 'カメラ切替中...';
+            elements.cameraContainer.classList.remove('detecting');
+            elements.readyBtn.disabled = true;
+            stableDetectionCount = 0;
+            ppgData = [];
+            recentBPMs = [];
+            elements.bpmValue.textContent = '--';
+            
+            try {
                 videoStream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: { ideal: 'environment' },
+                        deviceId: { exact: nextCamera.deviceId },
                         width: { ideal: 640 },
                         height: { ideal: 480 }
                     }
@@ -1003,26 +1105,26 @@
                 
                 elements.cameraVideo.srcObject = videoStream;
                 await elements.cameraVideo.play();
-
+                
+                console.log('Switched to:', nextCamera.label);
+                
                 // フラッシュをオン
                 try {
                     const track = videoStream.getVideoTracks()[0];
-                    console.log('Camera started:', track.label);
                     const capabilities = track.getCapabilities ? track.getCapabilities() : {};
                     if (capabilities.torch) {
                         await track.applyConstraints({ advanced: [{ torch: true }] });
-                        console.log('Torch enabled');
                     }
-                } catch (e) {
-                    console.log('Torch not available:', e);
-                }
-
+                } catch (e) {}
+                
                 elements.cameraLabel.textContent = '指先をカメラに押し当ててください';
                 startPPGDetection();
-
+                
             } catch (error) {
-                console.error('Camera error:', error);
-                showCameraError();
+                console.error('Switch camera error:', error);
+                elements.cameraLabel.textContent = 'カメラ切替に失敗しました';
+                // 元のカメラで再起動
+                initCamera();
             }
         }
 
