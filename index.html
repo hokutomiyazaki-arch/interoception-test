@@ -255,6 +255,12 @@
             color: #aaa;
         }
 
+        .camera-name {
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
         .btn-camera-switch {
             margin-top: 10px;
             padding: 8px 16px;
@@ -677,7 +683,7 @@
                 <div class="instruction-box">
                     <div class="instruction-step">ステップ 1/4</div>
                     <div class="instruction-text">
-                        カメラに指先を軽く押し当てて<br>心拍が検出されるのを待ってください
+                        カメラの横にあるフラッシュライトに<br>指先をしっかり押し当ててください
                     </div>
                 </div>
 
@@ -686,6 +692,7 @@
                         <video id="cameraVideo" autoplay playsinline muted></video>
                     </div>
                     <div class="camera-label" id="cameraLabel">カメラを起動中...</div>
+                    <div class="camera-name" id="cameraName"></div>
                     <button class="btn-camera-switch" id="switchCameraBtn">📷 カメラ切替</button>
                 </div>
 
@@ -893,6 +900,7 @@
 
         // カメラ関連
         let availableCameras = [];
+        let backCameras = [];
         let currentCameraIndex = 0;
 
         // PPG解析用
@@ -927,6 +935,7 @@
             elements.cameraVideo = document.getElementById('cameraVideo');
             elements.cameraContainer = document.getElementById('cameraContainer');
             elements.cameraLabel = document.getElementById('cameraLabel');
+            elements.cameraName = document.getElementById('cameraName');
             elements.heartIcon = document.getElementById('heartIcon');
             elements.bpmValue = document.getElementById('bpmValue');
             
@@ -1026,34 +1035,42 @@
                 // カメラリストを取得
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 availableCameras = devices.filter(d => d.kind === 'videoinput');
-                console.log('Available cameras:', availableCameras.map(d => d.label));
+                
+                // 背面カメラのみをフィルタリング
+                backCameras = availableCameras.filter(d => {
+                    const label = d.label.toLowerCase();
+                    // フロントカメラを除外
+                    if (label.includes('front') || label.includes('前面') || label.includes('内側')) {
+                        return false;
+                    }
+                    return true;
+                });
+                
+                console.log('All cameras:', availableCameras.map(d => d.label));
+                console.log('Back cameras:', backCameras.map(d => d.label));
 
                 // 現在のカメラのインデックスを特定
                 const currentTrack = videoStream.getVideoTracks()[0];
                 const currentLabel = currentTrack.label;
                 console.log('Current camera:', currentLabel);
                 
-                for (let i = 0; i < availableCameras.length; i++) {
-                    if (availableCameras[i].label === currentLabel) {
+                for (let i = 0; i < backCameras.length; i++) {
+                    if (backCameras[i].label === currentLabel) {
                         currentCameraIndex = i;
                         break;
                     }
                 }
 
                 // フラッシュをオン
-                try {
-                    const capabilities = currentTrack.getCapabilities ? currentTrack.getCapabilities() : {};
-                    if (capabilities.torch) {
-                        await currentTrack.applyConstraints({ advanced: [{ torch: true }] });
-                    }
-                } catch (e) {
-                    console.log('Torch not available');
-                }
+                await enableTorch(currentTrack);
 
-                elements.cameraLabel.textContent = '指先をカメラに押し当ててください';
+                // カメラ名を表示
+                elements.cameraName.textContent = '使用中: ' + currentLabel;
+
+                elements.cameraLabel.textContent = '指先をフラッシュに押し当ててください';
                 
-                // カメラが複数あれば切替ボタンを表示
-                if (availableCameras.length > 1) {
+                // 背面カメラが複数あれば切替ボタンを表示
+                if (backCameras.length > 1) {
                     elements.switchCameraBtn.style.display = 'inline-block';
                 } else {
                     elements.switchCameraBtn.style.display = 'none';
@@ -1067,9 +1084,24 @@
             }
         }
 
-        // カメラ切替
+        // フラッシュをオン
+        async function enableTorch(track) {
+            try {
+                const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+                if (capabilities.torch) {
+                    await track.applyConstraints({ advanced: [{ torch: true }] });
+                    console.log('Torch enabled');
+                    return true;
+                }
+            } catch (e) {
+                console.log('Torch not available:', e);
+            }
+            return false;
+        }
+
+        // カメラ切替（背面カメラのみ）
         async function switchCamera() {
-            if (availableCameras.length <= 1) return;
+            if (backCameras.length <= 1) return;
             
             // PPG検出を停止
             if (animationFrame) {
@@ -1082,9 +1114,9 @@
                 videoStream.getTracks().forEach(track => track.stop());
             }
             
-            // 次のカメラに切替
-            currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
-            const nextCamera = availableCameras[currentCameraIndex];
+            // 次の背面カメラに切替
+            currentCameraIndex = (currentCameraIndex + 1) % backCameras.length;
+            const nextCamera = backCameras[currentCameraIndex];
             
             elements.cameraLabel.textContent = 'カメラ切替中...';
             elements.cameraContainer.classList.remove('detecting');
@@ -1092,6 +1124,8 @@
             stableDetectionCount = 0;
             ppgData = [];
             recentBPMs = [];
+            baseline = 0;
+            threshold = 0;
             elements.bpmValue.textContent = '--';
             
             try {
@@ -1108,22 +1142,19 @@
                 
                 console.log('Switched to:', nextCamera.label);
                 
-                // フラッシュをオン
-                try {
-                    const track = videoStream.getVideoTracks()[0];
-                    const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-                    if (capabilities.torch) {
-                        await track.applyConstraints({ advanced: [{ torch: true }] });
-                    }
-                } catch (e) {}
+                // カメラ名を表示
+                elements.cameraName.textContent = '使用中: ' + nextCamera.label;
                 
-                elements.cameraLabel.textContent = '指先をカメラに押し当ててください';
+                // フラッシュをオン
+                const track = videoStream.getVideoTracks()[0];
+                await enableTorch(track);
+                
+                elements.cameraLabel.textContent = '指先をフラッシュに押し当ててください';
                 startPPGDetection();
                 
             } catch (error) {
                 console.error('Switch camera error:', error);
                 elements.cameraLabel.textContent = 'カメラ切替に失敗しました';
-                // 元のカメラで再起動
                 initCamera();
             }
         }
@@ -1151,39 +1182,94 @@
             alert(message);
         }
 
-        // PPG検出（シンプル版）
+        // PPG検出（改善版）
         function startPPGDetection() {
             const ctx = elements.hiddenCanvas.getContext('2d');
             ppgData = [];
             stableDetectionCount = 0;
+            let smoothedData = [];
+            let lastValues = [];
+            let calibrated = false;
+            let frameCount = 0;
             
             function analyze() {
+                frameCount++;
+                
                 try {
                     ctx.drawImage(elements.cameraVideo, 0, 0, 100, 100);
-                    const imageData = ctx.getImageData(25, 25, 50, 50);
+                    const imageData = ctx.getImageData(20, 20, 60, 60);
                     const data = imageData.data;
 
-                    let redSum = 0;
+                    // RGB値を計算
+                    let redSum = 0, greenSum = 0, blueSum = 0;
+                    const pixelCount = data.length / 4;
+                    
                     for (let i = 0; i < data.length; i += 4) {
                         redSum += data[i];
+                        greenSum += data[i + 1];
+                        blueSum += data[i + 2];
                     }
-                    const avgRed = redSum / (data.length / 4);
+                    
+                    const avgRed = redSum / pixelCount;
+                    const avgGreen = greenSum / pixelCount;
+                    const avgBlue = blueSum / pixelCount;
+                    
+                    // 指が当たっているかチェック（赤が強い場合）
+                    const brightness = (avgRed + avgGreen + avgBlue) / 3;
+                    const isFingerPresent = avgRed > 100 && avgRed > avgGreen * 1.1;
+                    
+                    // 移動平均でスムージング
+                    lastValues.push(avgRed);
+                    if (lastValues.length > 5) lastValues.shift();
+                    const smoothedRed = lastValues.reduce((a, b) => a + b, 0) / lastValues.length;
+                    
+                    ppgData.push(smoothedRed);
+                    if (ppgData.length > 200) ppgData.shift();
+                    
+                    // デバッグ（10フレームごと）
+                    if (frameCount % 30 === 0) {
+                        console.log('PPG:', {
+                            red: avgRed.toFixed(1),
+                            green: avgGreen.toFixed(1),
+                            finger: isFingerPresent,
+                            baseline: baseline.toFixed(1),
+                            threshold: threshold.toFixed(2)
+                        });
+                    }
 
-                    ppgData.push(avgRed);
-                    if (ppgData.length > 150) ppgData.shift();
+                    // 指が当たっていない場合
+                    if (!isFingerPresent && ppgData.length > 30) {
+                        elements.cameraLabel.textContent = '指をフラッシュに押し当ててください';
+                        calibrated = false;
+                        baseline = 0;
+                        threshold = 0;
+                    }
 
-                    // キャリブレーション（50サンプル後）
-                    if (ppgData.length === 50) {
-                        const sum = ppgData.reduce((a, b) => a + b, 0);
-                        baseline = sum / ppgData.length;
-                        const variance = ppgData.reduce((acc, val) => acc + Math.pow(val - baseline, 2), 0) / ppgData.length;
-                        threshold = Math.sqrt(variance) * 0.4;
-                        console.log('Calibration done. Baseline:', baseline, 'Threshold:', threshold);
+                    // キャリブレーション
+                    if (!calibrated && ppgData.length >= 60 && isFingerPresent) {
+                        const recent = ppgData.slice(-60);
+                        const sum = recent.reduce((a, b) => a + b, 0);
+                        baseline = sum / recent.length;
+                        
+                        // 変動幅を計算
+                        const min = Math.min(...recent);
+                        const max = Math.max(...recent);
+                        const range = max - min;
+                        
+                        // 閾値は変動幅の30%に設定
+                        threshold = range * 0.3;
+                        
+                        // 最小閾値を設定
+                        if (threshold < 0.5) threshold = 0.5;
+                        
+                        calibrated = true;
+                        console.log('Calibration done:', { baseline, threshold, range });
+                        elements.cameraLabel.textContent = '心拍を検出中...';
                     }
 
                     // ピーク検出
-                    if (ppgData.length > 50) {
-                        detectPeak(avgRed);
+                    if (calibrated && isFingerPresent) {
+                        detectPeakImproved(smoothedRed);
                     }
 
                 } catch (e) {
@@ -1196,27 +1282,31 @@
             analyze();
         }
 
-        // ピーク検出（改善版）
-        function detectPeak(value) {
+        // 改善版ピーク検出
+        function detectPeakImproved(value) {
             const now = Date.now();
-            const deviation = value - baseline;
-            const minInterval = 350; // 最小間隔（171BPM上限）
+            const diff = value - baseline;
+            const minInterval = 400; // 150BPM上限
+            const maxInterval = 1500; // 40BPM下限
 
-            if (deviation > threshold && !peakDetected && (now - lastPeakTime) > minInterval) {
+            // 上昇検出（閾値を超えた）
+            if (diff > threshold && !peakDetected && (now - lastPeakTime) > minInterval) {
                 peakDetected = true;
+                
                 const interval = now - lastPeakTime;
-                lastPeakTime = now;
+                
+                // 有効な間隔の場合のみカウント
+                if (lastPeakTime > 0 && interval < maxInterval) {
+                    
+                    if (isDetecting) {
+                        beatCount++;
+                    }
 
-                if (isDetecting) {
-                    beatCount++;
-                }
-
-                // BPM計算
-                if (interval > 0 && interval < 1500) {
+                    // BPM計算
                     const bpm = Math.round(60000 / interval);
-                    if (bpm >= 45 && bpm <= 170) {
+                    if (bpm >= 40 && bpm <= 150) {
                         recentBPMs.push(bpm);
-                        if (recentBPMs.length > 8) recentBPMs.shift();
+                        if (recentBPMs.length > 10) recentBPMs.shift();
                         
                         const avgBPM = Math.round(recentBPMs.reduce((a, b) => a + b, 0) / recentBPMs.length);
                         currentBPM = avgBPM;
@@ -1226,15 +1316,19 @@
                             elements.bpmValue2.textContent = avgBPM;
                         }
 
-                        // 安定検出カウント（2回で有効化）
+                        // 安定検出
                         stableDetectionCount++;
-                        if (stableDetectionCount >= 2) {
+                        if (stableDetectionCount >= 3) {
                             elements.cameraContainer.classList.add('detecting');
-                            elements.cameraLabel.textContent = '心拍を検出中！';
+                            elements.cameraLabel.textContent = '心拍検出中！準備ができたらボタンを押してください';
                             elements.readyBtn.disabled = false;
                         }
+                        
+                        console.log('Beat detected! BPM:', bpm, 'Avg:', avgBPM);
                     }
                 }
+                
+                lastPeakTime = now;
 
                 // ハートアニメーション
                 elements.heartIcon.classList.add('beat');
@@ -1248,7 +1342,8 @@
 
                 playHeartbeat();
 
-            } else if (deviation < threshold * 0.2) {
+            } else if (diff < threshold * 0.3) {
+                // 下降検出（リセット）
                 peakDetected = false;
             }
         }
@@ -1353,6 +1448,10 @@
             beatCount = 0;
             stableDetectionCount = 0;
             currentBPM = 0;
+            baseline = 0;
+            threshold = 0;
+            peakDetected = false;
+            lastPeakTime = 0;
             
             elements.cameraContainer.classList.remove('detecting');
             elements.bpmValue.textContent = '--';
